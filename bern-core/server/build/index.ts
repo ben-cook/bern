@@ -1,13 +1,11 @@
-import { createCompiler } from "./webpack";
+import { type Stats, type StatsError } from "webpack";
 import { clean } from "./clean";
-import { StatsError } from "webpack";
-
-export const BUILD_DIR = ".bern-build";
+import { createCompiler } from "./webpack";
 
 export const build = async (dir: string) => {
   const [compiler] = await Promise.all([createCompiler(dir), clean(dir)]);
 
-  return new Promise((resolve, reject) => {
+  return new Promise<Stats | undefined>((resolve, reject) => {
     compiler.run((err, stats) => {
       if (err) return reject(err);
 
@@ -19,7 +17,7 @@ export const build = async (dir: string) => {
         return reject(error);
       }
 
-      resolve(undefined);
+      resolve(stats);
     });
   });
 };

@@ -1,16 +1,25 @@
 import http from "http";
 import path from "path";
-import { parse } from "url";
+import Router from "./router";
 // import send from "send";
-// import { render, renderJSON, errorToJSON } from "./render";
+import { RenderOptions, render } from "./render";
 // import { resolveFromList } from "./resolve";
+
+export type BernRequest = http.IncomingMessage;
+export type BernResponse = http.ServerResponse<http.IncomingMessage> & {
+  req: http.IncomingMessage;
+};
+export type BernRequestHandler = (req: BernRequest, res: BernResponse) => void;
+export type BernContext = { req: BernRequest; res: BernResponse };
 
 export default class Server {
   dir: string;
   http: http.Server;
+  router: Router;
 
-  constructor({ dir = ".", dev = false }) {
+  public constructor({ dir = ".", dev = false }) {
     this.dir = path.resolve(dir);
+    this.router = new Router();
 
     this.http = http.createServer((req, res) => {
       this.run(req, res).catch((err) => {
@@ -20,14 +29,14 @@ export default class Server {
       });
     });
 
-    // this.defineRoutes();
+    this.defineRoutes();
   }
 
-  async start(port: number) {
+  public async start(port: number) {
     this.http.listen(port);
   }
 
-  defineRoutes() {
+  private defineRoutes() {
     // this.router.get("/_next/:path+", async (req, res, params) => {
     //   const p = join(__dirname, "..", "client", ...(params.path || []));
     //   await this.serveStatic(req, res, p);
@@ -39,54 +48,75 @@ export default class Server {
     // this.router.get("/:path+.json", async (req, res) => {
     //   await this.renderJSON(req, res);
     // });
-    // this.router.get("/:path*", async (req, res) => {
-    //   await this.render(req, res);
-    // });
+    this.router.get("/:path*", async (req, res) => {
+      await this.render(req, res);
+    });
+    console.log("route", this.router.routes);
     return null;
   }
 
-  async run(req: http.IncomingMessage, res: http.ServerResponse) {
-    // const fn = this.router.match(req, res);
-    // if (fn) {
-    //   await fn();
-    // } else {
-    //   await this.render404(req, res);
-    // }
-
-    res.statusCode = 200;
-    res.flushHeaders();
-    res.write("Hello, World!\n");
-
-    return res.end();
+  private async run(req: BernRequest, res: BernResponse) {
+    const fn = this.router.match(req, res);
+    if (fn) {
+      await fn();
+    } else {
+      // await this.render404(req, res);
+      res.statusCode = 404;
+      res.flushHeaders();
+      res.write("This page could not be found.\n");
+      res.end();
+    }
   }
 
-  //   async render(req, res) {
-  //     const { dir, dev } = this;
-  //     const ctx = { req, res };
-  //     const opts = { dir, dev };
+  private async render(req: BernRequest, res: BernResponse) {
+    const { dir } = this;
+    const ctx: BernContext = { req, res };
+    const opts: RenderOptions = { dir };
 
-  //     let html;
+    if (!req.url) {
+      throw new Error("Request is missing a url");
+    }
 
-  //     const err = this.getCompilationError(req.url);
-  //     if (err) {
-  //       res.statusCode = 500;
-  //       html = await render("/_error-debug", { ...ctx, err }, opts);
-  //     } else {
-  //       try {
-  //         html = await render(req.url, ctx, opts);
-  //       } catch (err) {
-  //         if (err.code === "ENOENT") {
-  //           res.statusCode = 404;
-  //         } else {
-  //           console.error(err);
-  //           res.statusCode = 500;
-  //         }
-  //         html = await render("/_error", { ...ctx, err }, opts);
-  //       }
-  //     }
+    const err = this.getCompilationError(req.url);
 
-  //     sendHTML(res, html);
-  //   }
+    let html: string | undefined;
+    if (err) {
+      res.statusCode = 500;
+      // html = await render("/_error-debug", { ...ctx, err }, opts);
+      res.write("Internal server error");
+      res.end();
+      return;
+    }
+
+    try {
+      html = await render(req.url, ctx, opts);
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === "ENOENT") {
+        res.statusCode = 404;
+        res.end();
+      } else {
+        console.error(err);
+        res.statusCode = 500;
+        res.end();
+      }
+      // html = await render("/_error", { ...ctx, err }, opts);
+    }
+
+    if (html === undefined) {
+      console.log("generated undefined html");
+      res.end();
+      return;
+    }
+
+    if (html === "") {
+      console.log("generated empty html");
+      res.end();
+      return;
+    }
+
+    Server.sendHTML(res, html);
+  }
 
   //   async renderJSON(req, res) {
   //     const { dir } = this;
@@ -142,22 +172,23 @@ export default class Server {
   //     });
   //   }
 
-  //   getCompilationError(url) {
-  //     if (!this.hotReloader) return;
+  private getCompilationError(url: string) {
+    return undefined;
+    // if (!this.hotReloader) return;
 
-  //     const errors = this.hotReloader.getCompilationErrors();
-  //     if (!errors.size) return;
+    // const errors = this.hotReloader.getCompilationErrors();
+    // if (!errors.size) return;
 
-  //     const p = parse(url || "/").pathname.replace(/\.json$/, "");
-  //     const id = join(this.dir, ".next", "bundles", "pages", p);
-  //     const path = resolveFromList(id, errors.keys());
-  //     if (path) return errors.get(path)[0];
-  //   }
+    // const p = parse(url || "/").pathname.replace(/\.json$/, "");
+    // const id = join(this.dir, ".next", "bundles", "pages", p);
+    // const path = resolveFromList(id, errors.keys());
+    // if (path) return errors.get(path)[0];
+  }
   // }
 
-  // function sendHTML(res, html) {
-  //   res.setHeader("Content-Type", "text/html");
-  //   res.setHeader("Content-Length", Buffer.byteLength(html));
-  //   res.end(html);
-  // }
+  private static sendHTML(res: BernResponse, html: string) {
+    res.setHeader("Content-Type", "text/html");
+    res.setHeader("Content-Length", Buffer.byteLength(html));
+    res.end(html);
+  }
 }

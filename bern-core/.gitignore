@@ -1,3 +1,4 @@
 dist
 .bern-build
 yarn.lock
+*.log

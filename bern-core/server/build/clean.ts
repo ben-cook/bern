@@ -1,6 +1,6 @@
-import { resolve } from "path";
 import fs from "fs/promises";
-import { BUILD_DIR } from ".";
+import { resolve } from "path";
+import { BUILD_DIR } from "../constants";
 
 /** Clean the build folder */
 export const clean = (dir: string) => {

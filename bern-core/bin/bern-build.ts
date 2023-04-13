@@ -3,15 +3,16 @@
 import path from "path";
 import { build } from "../server/build";
 
-console.log("building!");
-console.log({ argv: process.argv });
-
 const dir = path.resolve(".");
 
-console.log({ dir });
-
 build(dir)
-  .then(() => console.info("Build successful"))
+  .then((stats) => {
+    const compilationTime = (
+      (stats?.endTime - stats?.startTime) /
+      1000
+    ).toFixed(2);
+    console.info(`Built successfully in ${compilationTime}s`);
+  })
   .catch((err) => {
     console.error(err);
     process.exit(1);

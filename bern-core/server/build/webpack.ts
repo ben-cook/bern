@@ -1,7 +1,7 @@
+import { glob } from "glob";
 import path from "path";
 import { webpack, type Compiler, type Configuration } from "webpack";
-import { glob } from "glob";
-import { BUILD_DIR } from ".";
+import { BUILD_DIR } from "../constants";
 
 export const createCompiler = async (dir: string): Promise<Compiler> => {
   const resolvedDir = path.resolve(dir);
@@ -17,6 +17,7 @@ export const createCompiler = async (dir: string): Promise<Compiler> => {
 
   const webpackConfiguration: Configuration = {
     context: resolvedDir,
+    mode: "production",
     entry,
     output: {
       path: path.join(resolvedDir, BUILD_DIR),
@@ -24,6 +25,24 @@ export const createCompiler = async (dir: string): Promise<Compiler> => {
       libraryTarget: "commonjs2",
     },
     externals: ["react", "react-dom"],
+    module: {
+      rules: [
+        {
+          test: /\.(?:js|jsx|ts|tsx)/,
+          exclude: /node_modules/,
+          use: {
+            loader: "babel-loader",
+            options: {
+              presets: [
+                "@babel/preset-env",
+                "@babel/preset-react",
+                "@babel/preset-typescript",
+              ],
+            },
+          },
+        },
+      ],
+    },
     resolve: {
       roots: [nodeModulesDir, path.join(resolvedDir, "node_modules")],
     },

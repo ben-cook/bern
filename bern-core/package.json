@@ -6,15 +6,23 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/lib/index.js",
-  "bin": "./dist/bin/bern",
+  "main": "./dist/server/index.js",
+  "bin": {
+    "bern": "./dist/bin/bern.js"
+  },
   "scripts": {
     "build": "tsc",
-    "prepare": "build"
+    "prepare": "npm run build"
   },
   "dependencies": {
+    "@babel/core": "^7.21.4",
+    "@babel/preset-env": "^7.21.4",
+    "@babel/preset-react": "^7.18.6",
+    "@babel/preset-typescript": "^7.21.4",
+    "babel-loader": "^9.1.2",
     "cross-spawn": "^7.0.3",
     "glob": "^10.0.0",
+    "path-match": "^1.2.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "webpack": "^5.78.0",
