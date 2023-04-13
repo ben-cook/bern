@@ -1,0 +1,8 @@
+{
+  "license": "private",
+  "private": true,
+  "workspaces": [
+    "bern-core",
+    "examples/*"
+  ]
+}

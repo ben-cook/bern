@@ -1,0 +1,30 @@
+{
+  "name": "bern",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/lib/index.js",
+  "bin": "./dist/bin/bern",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "build"
+  },
+  "dependencies": {
+    "cross-spawn": "^7.0.3",
+    "glob": "^10.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "webpack": "^5.78.0",
+    "webpack-cli": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/cross-spawn": "^6.0.2",
+    "@types/node": "^18.15.11",
+    "@types/react-dom": "^18.0.11",
+    "prettier": "^2.8.7",
+    "typescript": "^5.0.4"
+  }
+}
