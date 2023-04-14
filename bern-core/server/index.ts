@@ -51,8 +51,6 @@ export default class Server {
     this.router.get("/:path*", async (req, res) => {
       await this.render(req, res);
     });
-    console.log("route", this.router.routes);
-    return null;
   }
 
   private async run(req: BernRequest, res: BernResponse) {

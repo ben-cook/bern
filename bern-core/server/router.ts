@@ -18,7 +18,6 @@ export default class Router {
 
   add(method: string, path: string, fn: BernRequestHandler) {
     const routes = this.routes.get(method) || new Set();
-    console.debug({ route: pathMatchFunction(path) });
     routes.add({ match: pathMatchFunction(path), fn });
     this.routes.set(method, routes);
   }

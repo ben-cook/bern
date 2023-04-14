@@ -3,17 +3,18 @@ import path from "path";
 import { webpack, type Compiler, type Configuration } from "webpack";
 import { BUILD_DIR } from "../constants";
 
+const bernPagesDir = path.join(__dirname, "..", "..", "pages");
+const nodeModulesDir = path.join(__dirname, "..", "..", "..", "node_modules");
+
 export const createCompiler = async (dir: string): Promise<Compiler> => {
   const resolvedDir = path.resolve(dir);
 
-  const pages = await glob("pages/**/*.js", { cwd: resolvedDir });
+  const pages = await glob("pages/**/*.{js,jsx,ts,tsx}", { cwd: resolvedDir });
 
   const entry: Record<string, string> = {};
   for (const page of pages) {
     entry[path.join("bundles", page)] = `./${page}`;
   }
-
-  const nodeModulesDir = path.join(__dirname, "..", "..", "..", "node_modules");
 
   const webpackConfiguration: Configuration = {
     context: resolvedDir,
@@ -28,8 +29,10 @@ export const createCompiler = async (dir: string): Promise<Compiler> => {
     module: {
       rules: [
         {
-          test: /\.(?:js|jsx|ts|tsx)/,
-          exclude: /node_modules/,
+          test: /\.(?:js|jsx|ts|tsx)$/,
+          include: [resolvedDir, bernPagesDir],
+          exclude: (str) =>
+            /node_modules/.test(str) && str.indexOf(bernPagesDir) !== 0,
           use: {
             loader: "babel-loader",
             options: {
