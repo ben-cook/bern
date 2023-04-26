@@ -25,10 +25,57 @@ export const render = async (
     throw new Error(`Could not get path from '${url}'`);
   }
 
-  const mod = await requireModule(
-    path.join(dir, BUILD_DIR, "dist", "pages", resolvedPath)
-  );
-  const Component = mod.default || mod;
+  console.log({ resolvedPath });
+
+  // const mod = await requireModule(
+  //   path.join(dir, BUILD_DIR, "dist", "pages", resolvedPath)
+  // );
+  let mod;
+  try {
+    mod = await requireModule(
+      path.join(dir, BUILD_DIR, "bundles", "pages", resolvedPath)
+    );
+  } catch {
+    try {
+      mod = await requireModule(
+        path.join(
+          dir,
+          BUILD_DIR,
+          "bundles",
+          "pages",
+          resolvedPath.slice(0, resolvedPath.length - 3) + ".jsx"
+        )
+      );
+    } catch {
+      try {
+        mod = await requireModule(
+          path.join(
+            dir,
+            BUILD_DIR,
+            "bundles",
+            "pages",
+            resolvedPath.slice(0, resolvedPath.length - 3) + ".ts"
+          )
+        );
+      } catch {
+        try {
+          mod = await requireModule(
+            path.join(
+              dir,
+              BUILD_DIR,
+              "bundles",
+              "pages",
+              resolvedPath.slice(0, resolvedPath.length - 3) + ".tsx"
+            )
+          );
+        } catch {}
+      }
+    }
+  }
+
+  const Component = mod?.default || mod;
+
+  console.log(Component);
 
   const props = await (Component.getInitialProps
     ? Component.getInitialProps(ctx)
@@ -47,13 +94,19 @@ export const render = async (
 
   const str = renderToString(app);
 
-  const doc = createElement(Document, {
-    html: str,
-  });
+  // const doc = createElement(Document, {
+  //   html: str,
+  //   data: {
+  //     component,
+  //   },
+  // });
 
-  console.log(`Rendered HTML: ${renderToStaticMarkup(doc)}`);
+  // const staticMarkup = renderToStaticMarkup(doc);
 
-  return "<!DOCTYPE html>" + renderToStaticMarkup(doc);
+  // console.log(`Rendered HTML: ${staticMarkup}`);
+
+  // return "<!DOCTYPE html>" + staticMarkup;
+  return "<!DOCTYPE html>" + str;
 };
 
 const getPath = (url: string) => {

@@ -2,6 +2,7 @@ import { glob } from "glob";
 import path from "path";
 import { webpack, type Compiler, type Configuration } from "webpack";
 import { BUILD_DIR } from "../constants";
+import { log } from "console";
 
 const bernPagesDir = path.join(__dirname, "..", "..", "pages");
 const nodeModulesDir = path.join(__dirname, "..", "..", "..", "node_modules");
@@ -22,7 +23,19 @@ export const createCompiler = async (dir: string): Promise<Compiler> => {
     entry,
     output: {
       path: path.join(resolvedDir, BUILD_DIR),
-      filename: "[name]",
+      filename: (path) => {
+        console.log(path.filename);
+        if (path.filename?.endsWith(".jsx")) {
+          return path.filename.replace(".jsx", ".js");
+        }
+        if (path.filename?.endsWith(".ts")) {
+          return path.filename.replace(".ts", ".js");
+        }
+        if (path.filename?.endsWith(".tsx")) {
+          return path.filename.replace(".tsx", ".js");
+        }
+        return "[name]";
+      },
       libraryTarget: "commonjs2",
     },
     externals: ["react", "react-dom"],
@@ -48,6 +61,7 @@ export const createCompiler = async (dir: string): Promise<Compiler> => {
     },
     resolve: {
       roots: [nodeModulesDir, path.join(resolvedDir, "node_modules")],
+      extensions: [".js", ".jsx", ".ts", ".tsx"],
     },
     resolveLoader: {
       roots: [nodeModulesDir, path.join(__dirname, "loaders")],

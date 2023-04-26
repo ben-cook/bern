@@ -22,6 +22,7 @@
     "babel-loader": "^9.1.2",
     "cross-spawn": "^7.0.3",
     "glob": "^10.0.0",
+    "htmlescape": "^1.1.1",
     "path-match": "^1.2.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.2",
+    "@types/htmlescape": "^1.1.1",
     "@types/node": "^18.15.11",
     "@types/react-dom": "^18.0.11",
     "prettier": "^2.8.7",
